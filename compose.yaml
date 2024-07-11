@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:10.5
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: example_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "8080:80"
+    depends_on:
+      - mariadb
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+    ports:
+      - 8025:8025
+      - 1025:1025
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      MP_SMTP_USER: "${SMTP_USER}"
+      MP_SMTP_PASS: "${SMTP_PASS}"
+
+volumes:
+  mariadb_data:
